@@ -1,5 +1,6 @@
 # stargate-kiva
-Stargate 
+### Stargate Hackathon
+#### September 11, 2020
 
 **Team:** Colonel Jack
 
@@ -20,7 +21,7 @@ You can actively engage with the loan process, which changes the lives of small 
 * [SH-6](https://datastax.jira.com/browse/SH-6)
 * [SH-8](https://datastax.jira.com/browse/SH-8)
 
-**Install the app**
+## Install the app
 1. Clone the *stargate-kiva* repo.
 ```
 git clone git@github.com:jeffbanks/stargate-kiva.git
