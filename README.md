@@ -37,4 +37,4 @@ npm install
 ```
 REACT_APP_MAPBOX_KEY="<YOUR-KEY-GOES-HERE>" npm start
 ```
-5. Open the application locally at [http://localhost:3000/].
+5. Open the application locally at [http://localhost:3000/](http://localhost:3000/).
