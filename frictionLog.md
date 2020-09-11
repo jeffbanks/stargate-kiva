@@ -1,0 +1,1 @@
+# stargate-kiva Friction Log
