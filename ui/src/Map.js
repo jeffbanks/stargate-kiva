@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import './Map.css';
 import { buildDialog, renderRing } from './utils';
+import stargate from './stargate';
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY;
 
@@ -15,12 +16,33 @@ const Map = () => {
 
   // Initialize map when component mounts
   useEffect(() => {
+
+    
+
+    const namespace = 'kiva';
+    const collection = 'danjtest';
+    const loanId = '79b3eade-f3b9-43d1-9a7e-7b02da145260';
+    const query = `/namespaces/${namespace}/collections/${collection}/${loanId}`;
+
+    async function fetchData() {
+      const sg = await stargate.createClient({
+        baseUrl: `https://${process.env.REACT_APP_ASTRA_DB_ID}-${process.env.REACT_APP_ASTRA_DB_REGION}.apps.astra.datastax.com`,
+        username: process.env.REACT_APP_STARGATE_USERNAME,
+        password: process.env.REACT_APP_STARGATE_PASSWORD,
+      }, process.env.REACT_APP_TOKEN);
+      const data = sg.get(query);
+      console.log(data);
+    }
+    fetchData();
+
+
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/dark-v10',
       center: [lng, lat],
       zoom: zoom
     });
+
 
     // Add navigation control (the +/- zoom buttons)
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');

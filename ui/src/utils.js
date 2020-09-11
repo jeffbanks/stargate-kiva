@@ -11,7 +11,6 @@ function shortenNumber(value) {
 }
 
 export function renderRing(props, numOfClusters, totalFunding, colors) {
-   console.log(props, numOfClusters, totalFunding, colors)
     var offsets = [];
     var fundedAmount = props.fundedAmount;
     var fundingAvg = totalFunding / numOfClusters;
@@ -47,7 +46,6 @@ export function renderRing(props, numOfClusters, totalFunding, colors) {
         'px sans-serif; display: block">';
 
     for (i = 0; i < counts.length; i++) {
-         console.log(colors[i])
         html += segment(
             offsets[i] / total,
             (offsets[i] + counts[i]) / total,
