@@ -32,7 +32,7 @@ import java.util.UUID;
 
 public class LoanLoader
 {
-    private static final int MAX_LOANS_TO_LOAD = 100;
+    private static final int MAX_LOANS_TO_LOAD = 500;
     private static String token;
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
     private final ObjectMapper mapper = new ObjectMapper();
@@ -68,7 +68,7 @@ public class LoanLoader
                 // These id's are from Dan's database
                 // "1315314", "666025", "240074", "624279", "1369466", "119028", "1743327", "1605678", "185243", "1655299", "1944378", "1883146", "1216523", "655128", "385297", "880209", "775788", "986540", "1185786", "1927752", "682191", "960306", "799207", "1401523", "1535425", "938271", "827034", "1692876", "133355", "1369711", "1847217", "460473", "289351", "462109", "1300882", "666262", "1904911", "460559"
              
-                // These are the first 100 from Gianluca's database: astraDatabaseId = "992d6ea1-5cc8-4636-8b4a-4f6fede43f4c";
+                // These are the first 100 from Gianluca's database: astraDatabaseId = "992d6ea1-5cc8-4636-8b4a-4f6fede43f4c"
                 "1535425", "1554808", "827034", "176607", "185243", "528554", "1217145", "700370", "1973931", "690035", "1828068", "1904911", "930699", "1512214", "899742", "1049521", "1102884", "1996692", "1709433", "237474", "1883146", "327745", "99999999", "1886229", "1736350", "1369466", "595417", "799207", "460473", "1401729", "1401523", "61349", "307642", "202716", "7408", "405034", "1952716", "1216523", "1562501", "775788", "1655299", "1299362", "1540532", "682191", "1187660", "1847217", "1142814", "986540", "1808183", "655128", "1185786", "1738715", "1636319", "1835127", "221670", "397840", "1738798", "666025", "960306", "1094427", "107449", "745242", "1456461", "620924", "1605678", "219134", "1716324", "129238", "133355", "1779743", "749526", "760647", "1841974", "1585679", "373119", "1674105", "1315314", "1300882", "653508", "1927752", "624279", "1767344", "1021199", "1529053", "108116", "326040", "823660", "1716915", "204252", "677956", "1025552", "610974", "462109", "1586757", "202938", "1761843", "1663843", "853008", "186179", "1644971"
         };
         List<String> existingLoans = new ArrayList<>();
@@ -76,46 +76,45 @@ public class LoanLoader
 
         List<Loan> loans;
         // Load some loan data
-//        loans = loanLoader.loadLoans(existingLoans);
-//        System.out.println(String.format("Loaded %d loans", loans.size()));
-//        for (Loan loan : loans)
-//        {
-//            System.out.println("Loaded: " + loan);
-//        }
-
-        System.out.println();
+        loans = loanLoader.loadLoans(existingLoans, 400);
+        System.out.println(String.format("Loaded %d loans", loans.size()));
+        for (Loan loan : loans)
+        {
+            System.out.println("Loaded: " + loan);
+        }
         System.out.println();
         
         // Query for loans - unfortunately this loan data
         // doesn't have all the loan fields. Can't get the 
         // query to return them all.
         // The loop will re-query each loan document to get all the fields.
-        List<Loan> getloans = loanLoader.getLoans();
-        List<Loan> allLoans = new ArrayList<>();
-        System.out.println(String.format("Queried %d loans", getloans.size()));
-        for (Loan loan : getloans)
-        {
+//        List<Loan> getloans = loanLoader.getLoans();
+//        List<Loan> allLoans = new ArrayList<>();
+//        System.out.println(String.format("Queried %d loans", getloans.size()));
+//        for (Loan loan : getloans)
+//        {
             // Query again to get all the fields
-            Loan queryLoan = loanLoader.getLoan(loan.documentId);
-            allLoans.add(queryLoan);
-        }
+//            Loan queryLoan = loanLoader.getLoan(loan.documentId);
+//            allLoans.add(queryLoan);
+//        }
 
         // Print a list of all the loan ids; these can be used to prevent 
         // duplicate loans from being loaded again (see 'existingLoanIds')
-        System.out.println(String.format("IDs of all %d loans:", allLoans.size()));
-        for (Loan loan : allLoans)
-        {
-            System.out.print(String.format("\"%s\", ", loan.id));
-        }
-        System.out.println();
+//        System.out.println(String.format("IDs of all %d loans:", allLoans.size()));
+//        for (Loan loan : allLoans)
+//        {
+//            System.out.print(String.format("\"%s\", ", loan.id));
+//        }
+//        System.out.println();
 
-        // DocumentIds
-        for (Loan loan : allLoans)
-        {
-            System.out.print(String.format("\"%s\", ", loan.documentId));
-        }
-        System.out.println();
+        // Print documentIds
+//        for (Loan loan : allLoans)
+//        {
+//            System.out.print(String.format("\"%s\", ", loan.documentId));
+//        }
+//        System.out.println();
 
+        
         // DELETE loans - to start over in the same collection
 //        for (Loan loan : allLoans)
 //        {
@@ -123,7 +122,7 @@ public class LoanLoader
 //        }
     }
 
-    private List<Loan> loadLoans(List<String> existingLoans) throws Exception
+    private List<Loan> loadLoans(List<String> existingLoans, int skipFirstN) throws Exception
     {
         String pathname = "/Users/dan.jatnieks/Downloads/kiva_ds_json/loans.json";
         FileInputStream fileInputStream = new FileInputStream(pathname);
@@ -142,10 +141,17 @@ public class LoanLoader
         }
 
         List<Loan> loans = new ArrayList<>();
+        int skipped = 0;
+        int loanIndex = 0;
         int loadedLoans = 0;
         while (loadedLoans < MAX_LOANS_TO_LOAD)
         {
             Loan loan = mapper.readValue(parser, Loan.class);
+            loanIndex++;
+            if (loanIndex < skipFirstN)
+            {
+                continue;
+            }
             if (existingLoans.contains(loan.id))
             {
                 System.out.println("Skipping existing loan: " + loan.id);
@@ -157,6 +163,7 @@ public class LoanLoader
                 || loan.country_name == null || loan.country_name.isEmpty())
             {
                 System.out.println(String.format("Empty town or country, skipping loan: %s", loan.id));
+                skipped++;
                 continue;
             }
             String loanLocation = String.format("%s,%s", loan.town, loan.country_name);
@@ -178,12 +185,14 @@ public class LoanLoader
             else
             {
                 System.out.println("Could not determine geo location data - skipping loan: " + loan);
+                skipped++;
             }
 
-            // Slow to not exceed the per minute limit for location data api
-            Thread.sleep(2000);
+            // Slow to not exceed the 60 per minute limit for location data api
+            Thread.sleep(1200);
         }
-        System.out.println(String.format("Loaded %d new loans", loans.size()));
+        System.out.println(String.format("Skipped an initials %d loans to avoid duplicates", skipFirstN));
+        System.out.println(String.format("Processed %d new loans, loaded: %d, skipped: %d", (loans.size()+skipped), loans.size(), skipped));
         return loans;
     }
 
