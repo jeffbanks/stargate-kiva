@@ -1,3 +1,5 @@
+const fetch = require("node-fetch");
+const _ = require("lodash");
 const methods = {
   get: "GET",
   post: "POST",
@@ -12,7 +14,22 @@ const request = async (
   accessToken = "",
   data = null
 ) => {
-  const res = await fetch(url, {
+
+  let res = undefined;
+  if (method === methods.get) {
+    res = await fetch(url, {
+      method,
+      headers: {
+        Accepts: "application/json",
+        "Content-Type": "application/json",
+        "X-Cassandra-Token": accessToken,
+      },
+      redirect: "follow",
+    });
+    return res;
+  }
+
+  res = await fetch(url, {
     method,
     headers: {
       Accepts: "application/json",
@@ -20,13 +37,30 @@ const request = async (
       "X-Cassandra-Token": accessToken,
     },
     redirect: "follow",
-    body: data ? JSON.stringify(data) : null,
+    body: hasJsonStructure(data) ? data : JSON.stringify(data),
   });
 
+  console.log("method: ", method);
   if (method === methods.delete) {
     return res;
   }
   return res;
+};
+
+// Performs check as we may already have a json structure.
+const hasJsonStructure = (data) => {
+  if (typeof data !== 'string') return false;
+  try {
+    const result = JSON.parse(data);
+    const type = Object.prototype.toString.call(result);
+    const isObjOrArray = Boolean(type === '[object Object]'
+      || type === '[object Array]');
+    console.log("json structure: ", isObjOrArray);
+    return isObjOrArray;
+  } catch (err) {
+    console.log("json structure: false");
+    return false;
+  }
 };
 
 class Client {
@@ -40,6 +74,9 @@ class Client {
   }
 
   post(path, data) {
+    const requestPath = this.baseUrl + path;
+    console.log("posting ... token: ", this.accessToken);
+    console.log("requestPath : ", requestPath);
     return request(this.baseUrl + path, methods.post, this.accessToken, data);
   }
 
@@ -58,6 +95,8 @@ class Client {
 
 const createClient = async (connection, token) => {
 
+  // Able to have .env entry with token for reuse.
+  // if not specified, generate one!
   if (!token) {
     const res = await request(
       connection.baseUrl + "/api/rest/v1/auth",
@@ -68,12 +107,15 @@ const createClient = async (connection, token) => {
         password: connection.password,
       }
     );
+    const jsonResult = await res.json();
+    const authToken = jsonResult.authToken;
+    console.log("AUTH TOKEN: ", authToken);
     return new Client(
       connection.baseUrl + "/api/rest/v2",
-      res.jsonResponse.authToken
+      authToken
     );
   } else {
-    console.log("token is provided, no need to query. token:", token);
+    console.log("AUTH TOKEN: ", token);
     return new Client(
       connection.baseUrl + "/api/rest/v2", token
     );

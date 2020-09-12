@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="LoanLoader" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="LoanLoader" />
+    <module name="server" />
+    <option name="VM_PARAMETERS" value="-DREACT_APP_STARGATE_USERNAME=kiva -DREACT_APP_STARGATE_PASSWORD=kiva123 -DREACT_APP_ASTRA_KEYSPACE=kiva -DREACT_APP_ASTRA_DB_ID=992d6ea1-5cc8-4636-8b4a-4f6fede43f4c -DREACT_APP_ASTRA_DB_REGION=us-east1" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
