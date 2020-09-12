@@ -8,10 +8,11 @@ require("dotenv").config();
 describe("A collection of Stargate integration validations.", () => {
 
   let stargateAPI = null;
-  const namespace = process.env.ASTRA_KEYSPACE;
-  const collection = "loans";
   let id = "8675309";
   let countryCode = "KE";
+
+  const collection = "loans";
+  const namespace = process.env.ASTRA_KEYSPACE;
   const docRootPath = `/namespaces/${namespace}/collections/${collection}`;
 
   // Create our stargate API instance.
@@ -40,7 +41,6 @@ describe("A collection of Stargate integration validations.", () => {
       id: id,
       country_code: countryCode
     });
-    console.log("result of put: ", result);
     assert(result);
     assert.strictEqual(result.status, 200);
     return result;
@@ -48,11 +48,10 @@ describe("A collection of Stargate integration validations.", () => {
 
   it("should get/search a loan by id", async () => {
 
-    const putResult = await stargateAPI.post(docRootPath + `/${id}`, {
+    const putResult = await stargateAPI.put(docRootPath + `/${id}`, {
       id: id,
       country_code: countryCode
     });
-    console.log("result of put: ", putResult);
     assert(putResult);
     assert.strictEqual(putResult.status, 200);
 
@@ -67,7 +66,7 @@ describe("A collection of Stargate integration validations.", () => {
 
   it("should delete/remove a loan by id", async () => {
 
-    const putResult = await stargateAPI.post(docRootPath, {
+    const putResult = await stargateAPI.put(docRootPath + `/${id}`, {
       id: id,
       country_code: countryCode
     });
@@ -78,39 +77,17 @@ describe("A collection of Stargate integration validations.", () => {
       id: id,
     });
     assert(deleteResult);
-    console.log("delete result: ", deleteResult);
     assert(deleteResult);
     return deleteResult;
-  });
-
-
-  it("load single line from file", async () => {
-
-    id = "888888888";
-    const singleLine = await processSingleLine(stargateAPI, docRootPath + `/${id}`, id);
-    console.log("single line: ", singleLine);
-
-    const putResult = await stargateAPI.put(docRootPath + `/${id}`, singleLine);
-    console.log("PUT RESULT: ", putResult);
-
-    let getResult = await stargateAPI.get(docRootPath + `/${id}`);
-    assert(getResult);
-    getResult = await getResult.json();
-    console.log("get result: ", getResult);
-    console.log("id value is: ", id);
-    assert.strictEqual(getResult.data.id, id);
-    return getResult;
-
   });
 
   it("should patch/update-part-of the loan with geo coordinates by id", async () => {
 
     // Given existing loan
-    const putResult = await stargateAPI.post(docRootPath + `/${id}`, {
+    const putResult = await stargateAPI.put(docRootPath + `/${id}`, {
       id: id,
       country_code: countryCode
     });
-    console.log("result of post: ", putResult);
     assert(putResult);
     assert.strictEqual(putResult.status, 200);
 
@@ -120,15 +97,12 @@ describe("A collection of Stargate integration validations.", () => {
       latitude: "40.4086841"
     });
     assert(patchResult);
-    console.log("patched result: ", patchResult);
     assert.strictEqual(patchResult.status, 200);
     patchResult = await patchResult.json();
-    console.log("patchResult: ", patchResult);
 
     // Verify the patch
     let getResult = await stargateAPI.get(docRootPath + `/${id}`);
     assert(getResult);
-    console.log("getResult in patching: ", getResult);
     getResult = await getResult.json();
     assert.strictEqual(getResult.data.id, id);
     assert.strictEqual(getResult.data.country_code, countryCode);
@@ -137,5 +111,18 @@ describe("A collection of Stargate integration validations.", () => {
     return getResult;
   });
 
+  it("load single line from file", async () => {
+
+    id = "888888888";
+    const singleLine = await processSingleLine(stargateAPI, docRootPath + `/${id}`, id);
+    await stargateAPI.put(docRootPath + `/${id}`, singleLine);
+
+    let getResult = await stargateAPI.get(docRootPath + `/${id}`);
+    assert(getResult);
+    getResult = await getResult.json();
+    assert.strictEqual(getResult.data.id, id);
+    return getResult;
+  });
 });
+
 
