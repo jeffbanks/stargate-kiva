@@ -30,12 +30,23 @@ git clone git@github.com:jeffbanks/stargate-kiva.git
 ```
 cd <github>/stargate-kiva/ui
 ```
-3. Install *npm*.
+3. Create a file for the required environmental variables.
+```
+REACT_APP_STARGATE_USERNAME=kiva
+REACT_APP_STARGATE_PASSWORD=kiva123
+REACT_APP_ASTRA_KEYSPACE=kiva
+REACT_APP_ASTRA_DB_ID=<DATABASE-ID>
+REACT_APP_ASTRA_DB_REGION=<ASTRA-REGION>
+REACT_APP_TOKEN=<YOUR-TOKEN>
+REACT_APP_MAPBOX_KEY=<YOUR-KEY>
+REACT_APP_ASTRA_COLLECTION=loans
+```
+4. Install *npm*.
 ```
 npm install
 ```
-4. Install the application.
+5. Install the application.
 ```
-REACT_APP_MAPBOX_KEY="<YOUR-KEY-GOES-HERE>" npm start
+npm start
 ```
-5. Open the application locally at [http://localhost:3000/](http://localhost:3000/).
+6. Open the application locally at [http://localhost:3000/](http://localhost:3000/).
