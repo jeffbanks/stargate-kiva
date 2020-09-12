@@ -32,6 +32,10 @@ cd <github>/stargate-kiva/ui
 ```
 3. Create a file for the required environmental variables.
 ```
+nano .env
+```
+Add the following text:
+```
 REACT_APP_STARGATE_USERNAME=kiva
 REACT_APP_STARGATE_PASSWORD=kiva123
 REACT_APP_ASTRA_KEYSPACE=kiva
