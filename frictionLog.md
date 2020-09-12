@@ -22,3 +22,10 @@ While developing the application, the Astra database was parked and doesn't allo
 
 ## Expiring tokens
 While developing the app, the team encountered some 401 errors. This seemed to be due to the token expiring during development. Users need to know how long the token is valid when they generate the original token.
+
+## `where` cannot be used with specified `fields`
+Because `SELECT *` is not available with the Stargate API, the `where` clause is necessary for specifying which values to return. However, the `where` clause cannot be used with specified `fields`. 
+```
+https://{{db}}-{{region}}.apps.astra.datastax.com/api/rest/v2/namespaces/{{keyspace}}/collections/loans/?loan_amount,fields=funded_amount,country_name,tags&where={"posted_time": { "$gte": "2000-01-01" }}
+```
+Using the example query, only the `documentId` was returned, which was then used to query the document details by the `documentId`.
