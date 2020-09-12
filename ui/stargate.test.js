@@ -1,6 +1,7 @@
 const assert = require("assert");
-const stargate = require("./stargate");
+const stargate = require("./src/stargate");
 const _ = require("lodash");
+const { processSingleLine, processAll } = require("./stargate-loader");
 
 require("dotenv").config();
 
@@ -9,13 +10,12 @@ describe("A collection of Stargate integration validations.", () => {
   let stargateAPI = null;
   const namespace = process.env.ASTRA_KEYSPACE;
   const collection = "loans";
-  const loanId = "8675309";
-  const loanName = "foo-man-choo";
-  const docRootPath = `/namespaces/${namespace}/collections/${collection}/${loanId}`;
+  let id = "8675309";
+  let countryCode = "KE";
+  const docRootPath = `/namespaces/${namespace}/collections/${collection}`;
 
   // Create our stargate API instance.
   before(async () => {
-
     stargateAPI = await stargate.createClient({
       baseUrl: `https://${process.env.ASTRA_DB_ID}-${process.env.ASTRA_DB_REGION}.apps.astra.datastax.com`,
       username: process.env.STARGATE_USERNAME,
@@ -27,18 +27,18 @@ describe("A collection of Stargate integration validations.", () => {
   // Cleanup any stale test state.
   beforeEach(async () => {
 
-    const deleteResult = await stargateAPI.delete(docRootPath, {
-      loanId: loanId,
+    const deleteResult = await stargateAPI.delete(docRootPath + `/${id}`, {
+      id: id,
     });
     assert(deleteResult);
     return deleteResult;
   });
 
-  it("should put/replace a loan for loanId", async () => {
+  it("should put/replace a loan for id", async () => {
 
-    const result = await stargateAPI.put(docRootPath, {
-      loanId: loanId,
-      loanName: loanName
+    const result = await stargateAPI.put(docRootPath + `/${id}`, {
+      id: id,
+      country_code: countryCode
     });
     console.log("result of put: ", result);
     assert(result);
@@ -46,36 +46,36 @@ describe("A collection of Stargate integration validations.", () => {
     return result;
   });
 
-  it("should get/search a loan by loanId", async () => {
+  it("should get/search a loan by id", async () => {
 
-    const putResult = await stargateAPI.put(docRootPath, {
-      loanId: loanId,
-      loanName: loanName
+    const putResult = await stargateAPI.post(docRootPath + `/${id}`, {
+      id: id,
+      country_code: countryCode
     });
     console.log("result of put: ", putResult);
     assert(putResult);
     assert.strictEqual(putResult.status, 200);
 
-    let getResult = await stargateAPI.get(docRootPath);
+    let getResult = await stargateAPI.get(docRootPath + `/${id}`);
     assert(getResult);
     getResult = await getResult.json();
-    assert.strictEqual(getResult.data.loanId, loanId);
-    assert.strictEqual(getResult.data.loanName, loanName);
+    assert.strictEqual(getResult.data.id, id);
+    assert.strictEqual(getResult.data.country_code, countryCode);
 
     return getResult;
   });
 
-  it("should delete/remove a loan by loanId", async () => {
+  it("should delete/remove a loan by id", async () => {
 
-    const putResult = await stargateAPI.put(docRootPath, {
-      loanId: loanId,
-      loanName: loanName
+    const putResult = await stargateAPI.post(docRootPath, {
+      id: id,
+      country_code: countryCode
     });
     assert(putResult);
     assert.strictEqual(putResult.status, 200);
 
-    const deleteResult = await stargateAPI.delete(docRootPath, {
-      loanId: loanId,
+    const deleteResult = await stargateAPI.delete(docRootPath + `/${id}`, {
+      id: id,
     });
     assert(deleteResult);
     console.log("delete result: ", deleteResult);
@@ -84,19 +84,38 @@ describe("A collection of Stargate integration validations.", () => {
   });
 
 
-  it("should patch/update-part-of the loan with geo coordinates by loanId", async () => {
+  it("load single line from file", async () => {
+
+    id = "888888888";
+    const singleLine = await processSingleLine(stargateAPI, docRootPath + `/${id}`, id);
+    console.log("single line: ", singleLine);
+
+    const putResult = await stargateAPI.put(docRootPath + `/${id}`, singleLine);
+    console.log("PUT RESULT: ", putResult);
+
+    let getResult = await stargateAPI.get(docRootPath + `/${id}`);
+    assert(getResult);
+    getResult = await getResult.json();
+    console.log("get result: ", getResult);
+    console.log("id value is: ", id);
+    assert.strictEqual(getResult.data.id, id);
+    return getResult;
+
+  });
+
+  it("should patch/update-part-of the loan with geo coordinates by id", async () => {
 
     // Given existing loan
-    const putResult = await stargateAPI.put(docRootPath, {
-      loanId: loanId,
-      loanName: loanName
+    const putResult = await stargateAPI.post(docRootPath + `/${id}`, {
+      id: id,
+      country_code: countryCode
     });
-    console.log("result of put: ", putResult);
+    console.log("result of post: ", putResult);
     assert(putResult);
     assert.strictEqual(putResult.status, 200);
 
     // Update the load with geo coordinates
-    let patchResult = await stargateAPI.patch(docRootPath, {
+    let patchResult = await stargateAPI.patch(docRootPath + `/${id}`, {
       longitude: "-78.6405738",
       latitude: "40.4086841"
     });
@@ -107,16 +126,16 @@ describe("A collection of Stargate integration validations.", () => {
     console.log("patchResult: ", patchResult);
 
     // Verify the patch
-    let getResult = await stargateAPI.get(docRootPath);
+    let getResult = await stargateAPI.get(docRootPath + `/${id}`);
     assert(getResult);
     console.log("getResult in patching: ", getResult);
     getResult = await getResult.json();
-    assert.strictEqual(getResult.data.loanId, loanId);
-    assert.strictEqual(getResult.data.loanName, loanName);
+    assert.strictEqual(getResult.data.id, id);
+    assert.strictEqual(getResult.data.country_code, countryCode);
     assert.strictEqual(getResult.data.longitude, "-78.6405738");
     assert.strictEqual(getResult.data.latitude, "40.4086841");
     return getResult;
-
   });
+
 });
 
