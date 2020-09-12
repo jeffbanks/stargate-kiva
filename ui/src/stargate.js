@@ -15,6 +15,7 @@ const request = async (
 ) => {
 
   let res = undefined;
+
   if (method === methods.get) {
     res = await fetch(url, {
       method,
@@ -28,6 +29,21 @@ const request = async (
     return res;
   }
 
+  if (method === methods.delete) {
+    res = await fetch(url, {
+      method,
+      headers: {
+        Accepts: "application/json",
+        "Content-Type": "application/json",
+        "X-Cassandra-Token": accessToken,
+      },
+      redirect: "follow",
+      body: data ? JSON.stringify(data) : null
+    });
+    return res;
+  }
+
+  // All other cases for now will use this approach for fetch.
   res = await fetch(url, {
     method,
     headers: {
@@ -39,9 +55,6 @@ const request = async (
     body: hasJsonStructure(data) ? data : JSON.stringify(data),
   });
 
-  if (method === methods.delete) {
-    return res;
-  }
   return res;
 };
 

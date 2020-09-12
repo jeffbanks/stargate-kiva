@@ -12,11 +12,10 @@ const processAll = async (stargateAPI, docRootPath, id) => {
         });
         rs.on('line', (line) => {
             if (line && line.length > 0) {
-                stargateAPI.post(docRootPath + `/${id}`, line);
+                stargateAPI.put(docRootPath + `/${id}`, line);
             }
         });
         await once(rs, 'close');
-        console.log('File processed.');
     } catch (err) {
         console.error(err);
     }
