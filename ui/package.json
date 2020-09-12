@@ -2,16 +2,17 @@
   "name": "stargate-kiva",
   "version": "1.0.0",
   "dependencies": {
+    "faker": "5.1.0",
+    "lodash": "4.17.20",
     "mapbox-gl": "1.11.1",
+    "mocha": "8.1.3",
+    "node-cache": "5.1.2",
+    "node-fetch": "^2.6.1",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-redux": "7.2.1",
     "react-scripts": "3.4.3",
-    "redux": "4.0.5",
-    "faker": "5.1.0",
-    "lodash": "4.17.20",
-    "mocha": "8.1.3",
-    "node-cache": "5.1.2"
+    "redux": "4.0.5"
   },
   "scripts": {
     "start": "react-scripts start",

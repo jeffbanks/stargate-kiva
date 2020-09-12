@@ -1,3 +1,5 @@
+const fetch = require("node-fetch");
+const _ = require("lodash");
 
 const methods = {
   get: "GET",
