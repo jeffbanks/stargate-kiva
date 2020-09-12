@@ -22,19 +22,19 @@ You can actively engage with the loan process, which changes the lives of small 
 * [SH-8](https://datastax.jira.com/browse/SH-8)
 
 ## Install the app
-1. Clone the *stargate-kiva* repo.
+1. Clone the *stargate-kiva* repo:
 ```
 git clone git@github.com:jeffbanks/stargate-kiva.git
 ```
-2. Go to the UI folder.
+2. Go to the UI folder:
 ```
 cd <github>/stargate-kiva/ui
 ```
-3. Create a file for the required environmental variables.
+3. Create a file for the required environmental variables:
 ```
 nano .env
 ```
-Add the following text:
+4. Add the following text to your `.env` file:
 ```
 REACT_APP_STARGATE_USERNAME=kiva
 REACT_APP_STARGATE_PASSWORD=kiva123
@@ -45,12 +45,14 @@ REACT_APP_TOKEN=<YOUR-TOKEN>
 REACT_APP_MAPBOX_KEY=<YOUR-KEY>
 REACT_APP_ASTRA_COLLECTION=loans
 ```
-4. Install *npm*.
+5. Install *npm*.
 ```
 npm install
 ```
-5. Install the application.
+6. Install the application.
 ```
 npm start
 ```
-6. Open the application locally at [http://localhost:3000/](http://localhost:3000/).
+7. Open the application locally at [http://localhost:3000/](http://localhost:3000/).
+
+## Testing the app
