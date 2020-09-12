@@ -2,7 +2,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
@@ -19,7 +18,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -48,21 +46,12 @@ public class LoanLoader
 
     public LoanLoader()
     {
-        // Dan's cluster
-//        astraDatabaseId = "e7959d8b-a174-4a74-990c-16d547fbaaea";
-//        astraRegion = "us-east1";
-//        astraDatabaseUser = "coloneljack";
-//        astraDatabasePassword = "coloneljack";
-//        namespaceId = "kiva";
-//        collectionId = "danjtest";
-
-        // TODO: get from environment
-        astraDatabaseId = "992d6ea1-5cc8-4636-8b4a-4f6fede43f4c";
-        astraRegion = "us-east1";
-        astraDatabaseUser = "kiva";
-        astraDatabasePassword = "kiva123";
-        namespaceId = "kiva";
         collectionId = "loans";
+        astraDatabaseUser = System.getProperty("REACT_APP_STARGATE_USERNAME");
+        astraDatabasePassword = System.getProperty("REACT_APP_STARGATE_PASSWORD");
+        namespaceId = System.getProperty("REACT_APP_ASTRA_KEYSPACE");
+        astraDatabaseId = System.getProperty("REACT_APP_ASTRA_DB_ID");
+        astraRegion = System.getProperty("REACT_APP_ASTRA_DB_REGION");
 
         baseAstraUrl = String.format("https://%s-%s.apps.astra.datastax.com/api/rest", astraDatabaseId, astraRegion);
     }
@@ -79,7 +68,7 @@ public class LoanLoader
                 // These id's are from Dan's database
                 // "1315314", "666025", "240074", "624279", "1369466", "119028", "1743327", "1605678", "185243", "1655299", "1944378", "1883146", "1216523", "655128", "385297", "880209", "775788", "986540", "1185786", "1927752", "682191", "960306", "799207", "1401523", "1535425", "938271", "827034", "1692876", "133355", "1369711", "1847217", "460473", "289351", "462109", "1300882", "666262", "1904911", "460559"
              
-                // These are from: astraDatabaseId = "992d6ea1-5cc8-4636-8b4a-4f6fede43f4c";
+                // These are the first 100 from Gianluca's database: astraDatabaseId = "992d6ea1-5cc8-4636-8b4a-4f6fede43f4c";
                 "1535425", "1554808", "827034", "176607", "185243", "528554", "1217145", "700370", "1973931", "690035", "1828068", "1904911", "930699", "1512214", "899742", "1049521", "1102884", "1996692", "1709433", "237474", "1883146", "327745", "99999999", "1886229", "1736350", "1369466", "595417", "799207", "460473", "1401729", "1401523", "61349", "307642", "202716", "7408", "405034", "1952716", "1216523", "1562501", "775788", "1655299", "1299362", "1540532", "682191", "1187660", "1847217", "1142814", "986540", "1808183", "655128", "1185786", "1738715", "1636319", "1835127", "221670", "397840", "1738798", "666025", "960306", "1094427", "107449", "745242", "1456461", "620924", "1605678", "219134", "1716324", "129238", "133355", "1779743", "749526", "760647", "1841974", "1585679", "373119", "1674105", "1315314", "1300882", "653508", "1927752", "624279", "1767344", "1021199", "1529053", "108116", "326040", "823660", "1716915", "204252", "677956", "1025552", "610974", "462109", "1586757", "202938", "1761843", "1663843", "853008", "186179", "1644971"
         };
         List<String> existingLoans = new ArrayList<>();
@@ -127,7 +116,7 @@ public class LoanLoader
         }
         System.out.println();
 
-        // DELETE loans
+        // DELETE loans - to start over in the same collection
 //        for (Loan loan : allLoans)
 //        {
 //            loanLoader.deleteLoan(loan);
