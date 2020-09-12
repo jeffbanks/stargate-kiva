@@ -56,3 +56,8 @@ npm start
 7. Open the application locally at [http://localhost:3000/](http://localhost:3000/).
 
 ## Testing the app
+There are tests available to verify various Stargate API operations used by the stargate-kiva.
+
+```
+npm test
+```
