@@ -2,8 +2,10 @@ import React, { useRef, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import './Map.css';
-import { buildDialog, renderRing } from './utils';
+import { buildGeoFeature, buildDialog, renderRing } from './utils';
 import stargate from './stargate';
+import { circleLayer, textLayer } from './map/layers';
+import { clusterSource } from './map/clusterSource';
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY;
 
@@ -14,28 +16,8 @@ const Map = () => {
   const [lat, setLat] = useState(34);
   const [zoom, setZoom] = useState(1.5);
 
-  // Initialize map when component mounts
-  useEffect(() => {
 
-    
-
-    const namespace = 'kiva';
-    const collection = 'danjtest';
-    const loanId = '79b3eade-f3b9-43d1-9a7e-7b02da145260';
-    const query = `/namespaces/${namespace}/collections/${collection}/${loanId}`;
-
-    async function fetchData() {
-      const sg = await stargate.createClient({
-        baseUrl: `https://${process.env.REACT_APP_ASTRA_DB_ID}-${process.env.REACT_APP_ASTRA_DB_REGION}.apps.astra.datastax.com`,
-        username: process.env.REACT_APP_STARGATE_USERNAME,
-        password: process.env.REACT_APP_STARGATE_PASSWORD,
-      }, process.env.REACT_APP_TOKEN);
-      const data = sg.get(query);
-      console.log(data);
-    }
-    fetchData();
-
-
+  function renderMap(features) {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/dark-v10',
@@ -55,98 +37,38 @@ const Map = () => {
     });
 
     map.on('load', function () {
-      var features = [];
+
       var min = Number.MAX_SAFE_INTEGER;
       var max = 0;
       var totalFunding = 0;
-      for (var i = 0; i < 10000; i++) {
-        var random = Math.random() * (10000 - 1000) + 1000;
-        totalFunding += random;
-        if (random < min)
-          min = random
-        if (random > max)
-          max = random
-        features[i] = {
-            "type": "Feature", 
-            "properties": { 
-              "id": i,
-              "time": 1507425650893,
-              "countryName": "Philippines",
-              "townName": "Liwan Sur",
-              "loanAmount": random,
-              "fundedAmount": random
-            }, 
-            "geometry": { 
-              "type": "Point", 
-              "coordinates": [ Math.random() * (150 - 30) + 30,
-                                Math.random() * (150 - 30) + 30 ] 
-            }   
-        }
-      }
-      
+      for (var i = 0; i < features.length; i++) {
+        const funded_amount = features[i].funded_amount;
+        totalFunding += funded_amount;
+        if (funded_amount < min)
+          min = funded_amount
+        if (funded_amount > max)
+          max = funded_amount 
+        }   
       var middle = 1.6 * ((max - min) / 2)
       const featureCollection = {
         "type": "FeatureCollection",
         "features": features
       }
 
-      var low = ['<', ['get', 'fundedAmount'], middle];
-      var high = ['>=', ['get', 'fundedAmount'], middle];
+    var low = ['<', ['get', 'funded_amount'], middle];
+    var high = ['>=', ['get', 'funded_amount'], middle];
 
-      // Add a geojson point source.
-      map.addSource('kiva-loans', {
-          'type': 'geojson',
-          'data': featureCollection,
-          'cluster': true,
-          'clusterRadius': 80,
-          'clusterProperties': {
-              // keep separate counts for each magnitude category in a cluster
-              'low': ['+', ['case', low, 1, 0]],
-              'high': ['+', ['case', high, 1, 0]],
-              'fundedAmount': ['+', ['get', 'fundedAmount']],
-          }
-      });
+    // Add a geojson point source.
+    map.addSource('kiva-loans', clusterSource(featureCollection, low, high));
 
-      // colors to use for the categories
-      var colors = ['#f26375', '#acf0a5'];
+    // colors to use for the categories
+    var colors = ['#f26375', '#acf0a5'];
     
-      // circle and symbol layers for rendering individual loans (unclustered points)
-      map.addLayer({
-          'id': 'loan_clusters',
-          'type': 'circle',
-          'source': 'kiva-loans',
-          'filter': ['!=', 'cluster', true],
-          'paint': {
-              'circle-color': [
-                  'case',
-                  low,
-                  colors[0],
-                  high,
-                  colors[1],
-                  colors[1]
-              ],
-              'circle-opacity': 0.6,
-              'circle-radius': 12
-          }
-        });
-      map.addLayer({
-          'id': 'loan_dots',
-          'type': 'symbol',
-          'source': 'kiva-loans',
-          'filter': ['!=', 'cluster', true],
-          'layout': {
-              'text-field': [
-                  'number-format',
-                  ['get', 'fundedAmount'],
-                  { 'min-fraction-digits': 1, 'max-fraction-digits': 1 }
-              ],
-              'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-              'text-size': 10
-          },
-          'paint': {
-              'text-color': 'white'
-          }
-      });
+      
+    // circle and symbol layers for rendering individual loans (unclustered points)
+    map.addLayer(circleLayer(low, high, colors));
+    map.addLayer(textLayer());
+      
 
       // objects for caching and keeping track of HTML marker objects (for performance)
       var markers = {};
@@ -220,9 +142,62 @@ const Map = () => {
       });
         
     });
+  }
 
+  // Initialize map when component mounts
+  useEffect(() => {
+
+    
+    const db = process.env.REACT_APP_ASTRA_DB_ID,
+      region = process.env.REACT_APP_ASTRA_DB_REGION,
+      username = process.env.REACT_APP_STARGATE_USERNAME,
+      password = process.env.REACT_APP_STARGATE_PASSWORD,
+      token = process.env.REACT_APP_TOKEN,
+      namespace = process.env.REACT_APP_ASTRA_KEYSPACE,
+      collection = process.env.REACT_APP_ASTRA_COLLECTION,
+      baseQuery = `/namespaces/${namespace}/collections/${collection}/`,
+      whereClause = '?where={"posted_time": { "$gte": "2000-01-01" } }';
+
+
+
+    async function fetchDocs(ids) {
+      const sg = await stargate.createClient({
+        baseUrl: `https://${db}-${region}.apps.astra.datastax.com`,
+        username,
+        password,
+      }, token);
+
+      var promises = [];
+      for (var i = 0; i < ids.length; i++) {
+        promises.push(sg.get(baseQuery + ids[i]));
+      }
+
+      Promise.all(promises).then(async results => {
+        var features = [];
+        for (var i = 0; i < ids.length; i++) {
+          const body = await results[i].json();
+          features.push(buildGeoFeature(body.data));
+        }
+        console.log(features);
+        renderMap(features);
+      });
+    }
+
+    async function fetchIds() {
+      const sg = await stargate.createClient({
+        baseUrl: `https://${db}-${region}.apps.astra.datastax.com`,
+        username,
+        password,
+      }, token);
+      const response = await sg.get(baseQuery + whereClause);
+      const body = await response.json();
+      const ids = Object.keys(body.data);
+      console.log(ids);
+      fetchDocs(ids);
+    }
+    fetchIds();
     // Clean up on unmount
-    return () => map.remove();
+    // return () => map.remove();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
