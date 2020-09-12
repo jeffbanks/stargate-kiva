@@ -14,7 +14,22 @@ const request = async (
   accessToken = "",
   data = null
 ) => {
-  const res = await fetch(url, {
+
+  let res = undefined;
+  if (method === methods.get) {
+    res = await fetch(url, {
+      method,
+      headers: {
+        Accepts: "application/json",
+        "Content-Type": "application/json",
+        "X-Cassandra-Token": accessToken,
+      },
+      redirect: "follow",
+    });
+    return res;
+  }
+
+  res = await fetch(url, {
     method,
     headers: {
       Accepts: "application/json",
