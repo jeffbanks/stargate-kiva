@@ -18,13 +18,14 @@ const Map = () => {
 
 
   function renderMap(features) {
+
+    // https://docs.mapbox.com/mapbox-gl-js/example/cluster-html/
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/dark-v10',
       center: [lng, lat],
       zoom: zoom
     });
-
 
     // Add navigation control (the +/- zoom buttons)
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
@@ -42,21 +43,21 @@ const Map = () => {
       var max = 0;
       var totalFunding = 0;
       for (var i = 0; i < features.length; i++) {
-        const funded_amount = features[i].funded_amount;
+        const funded_amount = features[i].properties.funded_amount;
         totalFunding += funded_amount;
         if (funded_amount < min)
           min = funded_amount
         if (funded_amount > max)
           max = funded_amount 
         }   
-      var middle = 1.6 * ((max - min) / 2)
+      var threshold = ((max - min) / 2)
       const featureCollection = {
         "type": "FeatureCollection",
         "features": features
       }
 
-    var low = ['<', ['get', 'funded_amount'], middle];
-    var high = ['>=', ['get', 'funded_amount'], middle];
+    var low = ['<', ['get', 'funded_amount'], threshold];
+    var high = ['>=', ['get', 'funded_amount'], threshold];
 
     // Add a geojson point source.
     map.addSource('kiva-loans', clusterSource(featureCollection, low, high));
@@ -158,8 +159,6 @@ const Map = () => {
       baseQuery = `/namespaces/${namespace}/collections/${collection}/`,
       whereClause = '?where={"posted_time": { "$gte": "2000-01-01" } }';
 
-
-
     async function fetchDocs(ids) {
       const sg = await stargate.createClient({
         baseUrl: `https://${db}-${region}.apps.astra.datastax.com`,
@@ -176,9 +175,9 @@ const Map = () => {
         var features = [];
         for (var i = 0; i < ids.length; i++) {
           const body = await results[i].json();
-          features.push(buildGeoFeature(body.data));
+          const feature = buildGeoFeature(body.data);
+          features.push(feature);
         }
-        console.log(features);
         renderMap(features);
       });
     }
@@ -192,12 +191,9 @@ const Map = () => {
       const response = await sg.get(baseQuery + whereClause);
       const body = await response.json();
       const ids = Object.keys(body.data);
-      console.log(ids);
       fetchDocs(ids);
     }
     fetchIds();
-    // Clean up on unmount
-    // return () => map.remove();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

@@ -1,5 +1,4 @@
-const fetch = require("node-fetch");
-const _ = require("lodash");
+
 const methods = {
   get: "GET",
   post: "POST",
@@ -40,7 +39,6 @@ const request = async (
     body: hasJsonStructure(data) ? data : JSON.stringify(data),
   });
 
-  console.log("method: ", method);
   if (method === methods.delete) {
     return res;
   }
@@ -55,10 +53,8 @@ const hasJsonStructure = (data) => {
     const type = Object.prototype.toString.call(result);
     const isObjOrArray = Boolean(type === '[object Object]'
       || type === '[object Array]');
-    console.log("json structure: ", isObjOrArray);
     return isObjOrArray;
   } catch (err) {
-    console.log("json structure: false");
     return false;
   }
 };
@@ -74,9 +70,6 @@ class Client {
   }
 
   post(path, data) {
-    const requestPath = this.baseUrl + path;
-    console.log("posting ... token: ", this.accessToken);
-    console.log("requestPath : ", requestPath);
     return request(this.baseUrl + path, methods.post, this.accessToken, data);
   }
 
@@ -109,13 +102,11 @@ const createClient = async (connection, token) => {
     );
     const jsonResult = await res.json();
     const authToken = jsonResult.authToken;
-    console.log("AUTH TOKEN: ", authToken);
     return new Client(
       connection.baseUrl + "/api/rest/v2",
       authToken
     );
   } else {
-    console.log("AUTH TOKEN: ", token);
     return new Client(
       connection.baseUrl + "/api/rest/v2", token
     );

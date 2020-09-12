@@ -121,12 +121,20 @@ export function buildGeoFeature(doc) {
 }
 
 export function buildDialog(props) {
+   const tags = props.tags && JSON.parse(props.tags);
+   var text = props.use;
+   if (text && text.length > 300)
+      text =  text.substring(0, 300) + "...";
    return (
       <div style={{width: 200}}>
          <b>{props.country_name}</b>
          <p>Town: {props.town}</p>
          <p>Loan: $ {props.loan_amount.toFixed(2)}</p>
          <p>Funded: $ {props.funded_amount.toFixed(2)}</p>
+         <br/>
+         <p>{text}</p>
+         <br/>
+         <p><b>{Array.isArray(tags) && tags.join(", ")}</b></p>
       </div>
    );
 }
