@@ -12,7 +12,7 @@ function shortenNumber(value) {
 
 export function renderRing(props, numOfClusters, totalFunding, colors) {
     var offsets = [];
-    var fundedAmount = props.fundedAmount;
+    var funded_amount = props.funded_amount;
     var fundingAvg = totalFunding / numOfClusters;
     var counts = [
         props.low,
@@ -23,12 +23,12 @@ export function renderRing(props, numOfClusters, totalFunding, colors) {
         offsets.push(total);
         total += counts[i];
     }
-    var fontSize = fundedAmount >= fundingAvg * 1.5  ? 22 :
-            fundedAmount >= fundingAvg        ? 20 :
-            fundedAmount >= fundingAvg * .5   ? 18 : 16;
-    var r = fundedAmount >= fundingAvg * 1.5  ? 50 :
-            fundedAmount >= fundingAvg        ? 32 :
-            fundedAmount >= fundingAvg * .5   ? 24 : 18;
+    var fontSize = funded_amount >= fundingAvg * 1.5  ? 22 :
+            funded_amount >= fundingAvg        ? 20 :
+            funded_amount >= fundingAvg * .5   ? 18 : 16;
+    var r = funded_amount >= fundingAvg * 1.5  ? 50 :
+            funded_amount >= fundingAvg        ? 32 :
+            funded_amount >= fundingAvg * .5   ? 24 : 18;
     var r0 = Math.round(r * 0.6);
     var w = r * 2;
 
@@ -60,7 +60,7 @@ export function renderRing(props, numOfClusters, totalFunding, colors) {
         ', ' +
         r +
         ')">' +
-        shortenNumber(props.fundedAmount) +
+        shortenNumber(props.funded_amount) +
         '</text></svg></div>';
 
     var el = document.createElement('div');
@@ -108,13 +108,25 @@ function segment(start, end, r, r0, color) {
         ].join(' ');
     }
 
+export function buildGeoFeature(doc) {
+   return {
+      "type": "Feature", 
+      "properties": doc,
+      "geometry": { 
+        "type": "Point", 
+        "coordinates": [ doc.lon,
+                          doc.lat ] 
+      }
+   }
+}
+
 export function buildDialog(props) {
    return (
       <div style={{width: 200}}>
-         <b>{props.countryName}</b>
-         <p>Town: {props.townName}</p>
-         <p>Loan: $ {props.loanAmount.toFixed(2)}</p>
-         <p>Funded: $ {props.fundedAmount.toFixed(2)}</p>
+         <b>{props.country_name}</b>
+         <p>Town: {props.town}</p>
+         <p>Loan: $ {props.loan_amount.toFixed(2)}</p>
+         <p>Funded: $ {props.funded_amount.toFixed(2)}</p>
       </div>
    );
 }
