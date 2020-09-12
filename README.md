@@ -61,3 +61,4 @@ There are tests available to verify various Stargate API operations used by the 
 ```
 npm test
 ```
+View the test cases [here](https://github.com/jeffbanks/stargate-kiva/blob/master/ui/stargate.test.js).
