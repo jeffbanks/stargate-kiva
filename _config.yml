@@ -1,5 +1,5 @@
 title: Stargate-Kiva
 email: jeff.banks@datastax.com  
 description: "Hackathon DataStax Stargate API usage with Kiva datasets."
-baseurl: "ui/dist"
+baseurl: ""
 url: "https://jeffbanks.github.io/stargate-kiva/"
